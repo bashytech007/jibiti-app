@@ -1,47 +1,67 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
-import Link from "next/link"
+import { Inter } from "next/font/google";
+import Link from "next/link";
+import { SessionProvider } from "next-auth/react";
+
+import { signIn, signOut, auth } from "@/auth";
+
+import UserButton from "./components/UserButton";
+
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Nextjs Jibiti App",
-  description: "Jibiti brought to you by nextjs",
+  title: "NextJS ChatGPT App",
+  description: "ChatGPT brought to you by NextJS",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} px-2 md:px-5 antialiased`}
-      >
-        <header className="text-white font-bold bg-green-900 text-2xl">
-         <div className="flex flex-grow">
-          <Link href="/">Jibiti-Chat</Link>
-          <Link href="/about" className="font-light ml-5">About</Link>
-          </div>
-        </header>
-        <div className="flex flex-col md:flex-row">
-          <div className="flex-grow">
+  const session = await auth();
+  if (session?.user) {
+    // TODO: Look into https://react.dev/reference/react/experimental_taintObjectReference
+    // filter out sensitive data before passing to client.
+    session.user = {
+      name: session.user.name,
+      email: session.user.email,
+      image: session.user.image,
+    };
+  }
 
-        {children}
+  return (
+    <SessionProvider basePath="/api/auth" session={session}>
+      <html lang="en">
+        <body className={`${inter.className} px-2 md:px-5`}>
+          <header className="text-white font-bold bg-green-900 text-2xl p-2 mb-3 rounded-b-lg shadow-gray-700 shadow-lg flex">
+            <div className="flex flex-grow">
+              <Link href="/">GPT Chat</Link>
+              <Link href="/about" className="ml-5 font-light">
+                About
+              </Link>
+            </div>
+            <div>
+              <UserButton
+                onSignIn={async () => {
+                  "use server";
+                  await signIn();
+                }}
+                onSignOut={async () => {
+                  "use server";
+                  await signOut();
+                }}
+              />
+            </div>
+          </header>
+          <div className="flex flex-col md:flex-row">
+            
+            <div className="flex-grow">{children}</div>
           </div>
-          </div>
-      </body>
-    </html>
+        </body>
+      </html>
+    </SessionProvider>
   );
 }
