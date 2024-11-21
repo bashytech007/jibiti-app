@@ -1,6 +1,6 @@
 import { sql } from "@vercel/postgres";
 
-import type { Chat, ChatWithMessages, Message} from "../types"
+import type { Chat, ChatWithMessages, Message} from "../../types"
 
 export async function getChat(
   chatId: number

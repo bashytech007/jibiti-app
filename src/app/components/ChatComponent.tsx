@@ -141,7 +141,7 @@ interface Message {
   content: string;
 }
 
-export default function Chat() {
+export default function ChatComponent() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
 
